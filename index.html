@@ -1392,21 +1392,48 @@
     let currentIndex = 0;
     let isTransitioning = false;
     const photoAssign = STUDENTS.map((s, i) => {
-      // Find exact match first
+      // 1. Exact match
       let match = PHOTO_POOL.find(p => p.toLowerCase() === s.nama.toLowerCase() + '_processed.jpg');
 
-      // If no exact match, try partial match (e.g. for "alvin" instead of "ALVIN HAIDAR ABDILAH")
+      // 2. Try removing spaces and special characters for exact match
       if (!match) {
-        // Split student name and try to find first name match
+        const cleanName = s.nama.toLowerCase().replace(/[^a-z0-9]/g, '');
+        match = PHOTO_POOL.find(p => p.toLowerCase().replace(/[^a-z0-9]/g, '').replace('processedjpg', '') === cleanName);
+      }
+
+      // 3. Try matching by longest unique word in the student's name (avoiding common names)
+      if (!match) {
+        // Find words longer than 3 chars, exclude common titles/names
+        const words = s.nama.toLowerCase().split(/\s+/).filter(w => 
+          w.length > 3 && !['muhamad', 'muhammad', 'ahmad', 'siti', 'putri', 'putra', 'raden', 'tubagus'].includes(w)
+        );
+        
+        for (const w of words) {
+          const possibleMatches = PHOTO_POOL.filter(p => p.toLowerCase().includes(w));
+          // Only assign if exactly ONE person in the photo pool matches this word
+          if (possibleMatches.length === 1) {
+            match = possibleMatches[0];
+            break;
+          }
+        }
+      }
+
+      // 4. Try matching the first name if it's not common and unique in the pool
+      if (!match) {
         const firstName = s.nama.split(' ')[0].toLowerCase();
-        match = PHOTO_POOL.find(p => p.toLowerCase().includes(firstName));
+        if (!['m', 'mohd', 'muhamad', 'muhammad', 'ahmad', 'siti'].includes(firstName)) {
+          const possibleMatches = PHOTO_POOL.filter(p => p.toLowerCase().includes(firstName));
+          if (possibleMatches.length === 1) {
+             match = possibleMatches[0];
+          }
+        }
       }
 
       if (match) {
         return `output/${match}`;
       }
 
-      // Fallback
+      // Fallback (akan menghasilkan 404 tapi mencegah salah foto muka orang)
       return `output/${s.nama}_processed.jpg`;
     });
 
