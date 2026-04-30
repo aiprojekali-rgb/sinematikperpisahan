@@ -1,7 +1,7 @@
 import os
 import re
 
-html_path = 'c:/xampp1/htdocs/CINEMATIC GRADUATION/graduation-slideshow.html'
+html_path = 'c:/xampp1/htdocs/CINEMATIC GRADUATION/index.html'
 output_dir = 'c:/xampp1/htdocs/CINEMATIC GRADUATION/output'
 
 images = [f for f in os.listdir(output_dir) if f.endswith(('.png', '.jpg', '.JPG'))]
